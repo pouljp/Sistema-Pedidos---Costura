@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciamento de Pedidos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1, h2 {
+            text-align: center;
+        }
+
+        form {
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        label {
+            flex: 1 0 45%; /* 45% para rótulos */
+            padding-right: 10px;
+        }
+
+        input, select, button {
+            flex: 1 0 50%; /* 50% para campos de entrada, select e botão */
+            margin-bottom: 10px;
+        }
+
+        #pedidosContainer, #realizadosContainer {
+            border-top: 1px solid #ccc;
+            padding-top: 20px;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .formato-info {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .imagem-pequena {
+            max-width: 50px;
+            max-height: 50px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Formulário de Pedido</h1>
+    
+    <form id="pedidoForm">
+        <label for="dataEntrada">Entrada:</label>
+        <input type="date" id="dataEntrada" required>
+
+        <label for="numeroPedido">Ped. nr.:</label>
+        <input type="text" id="numeroPedido" readonly>
+
+        <label for="nomeCliente">Cliente:</label>
+        <input type="text" id="nomeCliente" required>
+
+        <label for="quantidade">Qtd.:</label>
+        <input type="number" id="quantidade" required>
+
+        <label for="pecas">Peças:</label>
+        <select id="pecas" required>
+            <option value="">Selecione</option>
+            <option value="Camiseta">Camiseta</option>
+            <option value="Polo">Polo</option>
+            <option value="Jaleco">Jaleco</option>
+            <option value="Toalha">Toalha</option>
+            <option value="Bone">Boné</option>
+            <option value="Roupao">Roupão</option>
+        </select>
+
+        <label for="qtdBordar">QTD:</label>
+        <input type="number" id="qtdBordar" required>
+
+        <label for="tipoBordado">Bordado:</label>
+        <input type="text" id="tipoBordado" required>
+
+        <label for="hora">Hora:</label>
+        <input type="time" id="hora" required>
+
+        <label for="costura">Costura:</label>
+        <input type="checkbox" id="costura">
+
+        <label for="aplicacao">Aplicação:</label>
+        <select id="aplicacao" required>
+            <option value="">Selecione</option>
+            <option value="Velcro">Velcro</option>
+            <option value="Patche">Patche</option>
+            <option value="Tarjeta">Tarjeta</option>
+        </select>
+
+        <label for="fotosBordados">Bordados:</label>
+        <input type="file" id="fotosBordados" accept="image/*">
+        <p class="formato-info">Formatos aceitos: JPG, JPEG, PNG, GIF, BMP</p>
+
+        <label for="feito">Feito:</label>
+        <select id="feito">
+            <option value="sim">Sim</option>
+            <option value="nao">Não</option>
+        </select>
+
+        <button type="button" onclick="salvarPedido()">Salvar Pedido</button>
+    </form>
+
+    <div id="pedidosContainer">
+        <h2>Pedidos</h2>
+        <table id="pedidosTable">
+            <thead>
+                <tr>
+                    <th>Entrada</th>
+                    <th>Cliente</th>
+                    <th>Qtd.</th>
+                    <th>Peças</th>
+                    <th>QTD</th>
+                    <th>Bordados</th>
+                    <th>Hora</th>
+                    <th>Costura</th>
+                    <th>Aplicação</th>
+                    <th>Bordados</th>
+                    <th>Imagem</th>
+                    <th>Ação</th>
+                </tr>
+            </thead>
+            <tbody id="pedidosList"></tbody>
+        </table>
+    </div>
+
+    <div id="realizadosContainer">
+        <h2>Pedidos Realizados</h2>
+        <table id="realizadosTable">
+            <thead>
+                <tr>
+                    <th>Entrada</th>
+                    <th>Cliente</th>
+                    <th>Qtd.</th>
+                    <th>Peças</th>
+                    <th>QTD</th>
+                    <th>Bordados</th>
+                    <th>Hora</th>
+                    <th>Costura</th>
+                    <th>Aplicação</th>
+                    <th>Bordados</th>
+                    <th>Imagem</th>
+                </tr>
+            </thead>
+            <tbody id="realizadosList"></tbody>
+        </table>
+    </div>
+
+    <script>
+        function salvarPedido() {
+            var dataEntrada = document.getElementById('dataEntrada').value;
+            var numeroPedido = gerarNumeroPedido();
+            var nomeCliente = document.getElementById('nomeCliente').value;
+            var quantidade = document.getElementById('quantidade').value;
+            var pecas = document.getElementById('pecas').value;
+            var qtdBordar = document.getElementById('qtdBordar').value;
+            var tipoBordado = document.getElementById('tipoBordado').value;
+            var hora = document.getElementById('hora').value;
+            var costura = document.getElementById('costura').checked;
+            var aplicacao = document.getElementById('aplicacao').value;
+            var fotosBordados = document.getElementById('fotosBordados').files[0];
+            var feito = document.getElementById('feito').value === 'sim';
+
+            var pedido = {
+                "data_entrada": dataEntrada,
+                "numero_pedido": numeroPedido,
+                "nome_cliente": nomeCliente,
+                "quantidade": quantidade,
+                "pecas": pecas,
+                "qtd_bordar": qtdBordar,
+                "tipo_bordado": tipoBordado,
+                "hora": hora,
+                "costura": costura ? 'Sim' : 'Não',
+                "aplicacao": aplicacao,
+                "fotos_bordados": fotosBordados ? URL.createObjectURL(fotosBordados) : '',
+                "feito": feito ? 'Sim' : 'Não'
+            };
+
+            adicionarPedidoAoHTML(pedido);
+
+            document.getElementById('pedidoForm').reset();
+        }
+
+        function adicionarPedidoAoHTML(pedido) {
+            var tabela = document.getElementById('pedidosTable');
+            var linha = tabela.insertRow();
+
+            for (var chave in pedido) {
+                var celula = linha.insertCell();
+                if (chave === 'fotos_bordados') {
+                    celula.innerHTML = `<img src="${pedido[chave]}" alt="Imagem" class="imagem-pequena">`;
+                } else {
+                    celula.textContent = chave === 'data_entrada' ? formatarData(pedido[chave]) : pedido[chave];
+                }
+            }
+
+            adicionarAcao(linha, 'realizados');
+        }
+
+        function formatarData(data) {
+            var dataObj = new Date(data);
+            var dia = dataObj.getDate();
+            var mes = dataObj.getMonth() + 1;
+            var ano = dataObj.getFullYear();
+
+            return dia + '/' + mes + '/' + ano;
+        }
+
+        function gerarNumeroPedido() {
+            var tabelaPedidos = document.getElementById('pedidosTable');
+            var numeroPedido = tabelaPedidos.rows.length;
+            return numeroPedido < 10 ? '0' + numeroPedido : numeroPedido;
+        }
+
+        function adicionarAcao(linha, tipo) {
+            var celulaAcao = linha.insertCell();
+            var botaoAcao = document.createElement('button');
+            botaoAcao.textContent = 'Realizado';
+            botaoAcao.onclick = function() {
+                moverParaRealizados(linha);
+            };
+            celulaAcao.appendChild(botaoAcao);
+        }
+
+        function moverParaRealizados(linha) {
+            var tabelaRealizados = document.getElementById('realizadosTable');
+            var linhaRealizado = tabelaRealizados.insertRow();
+            for (var i = 0; i < linha.cells.length - 1; i++) {
+                var celula = linhaRealizado.insertCell();
+                celula.innerHTML = linha.cells[i].innerHTML;
+            }
+            linha.remove();
+        }
+    </script>
+</body>
+</html>
